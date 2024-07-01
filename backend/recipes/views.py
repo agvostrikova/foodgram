@@ -1,64 +1,33 @@
 from django.http import HttpResponse
-from django.db.models import Sum
+from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from reportlab.pdfbase import pdfmetrics
+
+from reportlab.pdfbase import pdfmetrics, ttfonts
 from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
-from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
+
+from django_short_url.views import get_surl
+
 from api.filters import IngredientFilter, RecipeFilter, TagFilter
 from api.paginations import LimitPagination
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
-    RecipeWriteSerializer, IngredientSerializer,
-    RecipeReadSerializer, ShortRecipeSerializer,
-    TagSerializer
+    RecipeSerializer, IngredientSerializer,
+    TagSerializer, FavoriteSerializer, ShoppingCartSerializer
 )
 from recipes.models import (
-    Ingredient, Recipe, RecipeIngredient, Tag, Favorite, ShoppingCart
+    Ingredient, Recipe, RecipeIngredient, Tag
 )
-
-
-def pdf_generation(value_list):
-    final_list = {}
-    for item in value_list:
-        name = item[0]
-        if name not in final_list:
-            final_list[name] = {
-                'measurement_unit': item[1],
-                'amount': item[2]
-            }
-        else:
-            final_list[name]['amount'] += item[2]
-    pdfmetrics.registerFont(
-        TTFont('Halogen', 'Halogen.ttf', 'UTF-8'))
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = (
-        'attachment; '
-        'filename="shopping_list.pdf"'
-    )
-    page = canvas.Canvas(response)
-    page.setFont('Halogen', size=24)
-    page.drawString(200, 800, 'Список ингредиентов')
-    page.setFont('Halogen', size=16)
-    height = 750
-    for i, (name, data) in enumerate(final_list.items(), 1):
-        page.drawString(75, height, (f'<{i}> {name} - {data["amount"]}, '
-                                     f'{data["measurement_unit"]}'))
-        height -= 25
-    page.showPage()
-    page.save()
-    return response
+from api.constants import LEN_SHORT_URL
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для обработки запросов на получение ингредиентов."""
+
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -69,6 +38,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для обработки запросов на получение тегов."""
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
@@ -77,73 +47,98 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """Вьюсет для работы с рецептами.
+     Обработка запросов создания/получения/редактирования/удаления рецептов
+     Добавление/удаление рецепта в избранное и список покупок."""
+
     queryset = Recipe.objects.all()
-    permission_classes = (IsAuthorOrReadOnly,)
-    pagination_class = LimitPagination
+    serializer_class = RecipeSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    permission_classes = (IsAuthorOrReadOnly,)
+    pagination_class = LimitPagination
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    def action_post_delete(self, pk, serializer_class):
+        user = self.request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+        object = serializer_class.Meta.model.objects.filter(
+            user=user, recipe=recipe
+        )
 
-    def get_serializer_class(self):
-        if self.request.method in SAFE_METHODS:
-            return RecipeReadSerializer
-        return RecipeWriteSerializer
+        if self.request.method == 'POST':
+            serializer = serializer_class(
+                data={'user': user.id, 'recipe': pk},
+                context={'request': self.request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['post', 'delete'],
-            permission_classes=[IsAuthenticated])
+        if self.request.method == 'DELETE':
+            if object.exists():
+                object.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({'error': 'Этого рецепта нет в списке'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['POST', 'DELETE'], detail=True)
     def favorite(self, request, pk):
-        if request.method == 'POST':
-            return self.add_obj(Favorite, request.user, pk)
-        if request.method == 'DELETE':
-            return self.delete_obj(Favorite, request.user, pk)
-        return None
+        return self.action_post_delete(pk, FavoriteSerializer)
 
-    @action(detail=True, methods=['post', 'delete'],
-            permission_classes=[IsAuthenticated])
+    @action(methods=['POST', 'DELETE'], detail=True)
     def shopping_cart(self, request, pk):
-        if request.method == 'POST':
-            return self.add_obj(ShoppingCart, request.user, pk)
-        if request.method == 'DELETE':
-            return self.delete_obj(ShoppingCart, request.user, pk)
-        return None
+        return self.action_post_delete(pk, ShoppingCartSerializer)
 
-    @action(detail=False, methods=['get'],
-            permission_classes=[IsAuthenticated])
+    @action(
+        detail=False, methods=['get'], permission_classes=[IsAuthenticated]
+    )
     def download_shopping_cart(self, request):
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = (
+            "attachment; filename='shopping_cart.pdf'"
+        )
+        p = canvas.Canvas(response)
+        arial = ttfonts.TTFont('Arial', 'data/arial.ttf')
+        pdfmetrics.registerFont(arial)
+        p.setFont('Arial', 14)
+
         ingredients = RecipeIngredient.objects.filter(
-            recipe__shoppingcart_recipe__user=request.user
-        ).values_list(
-            'ingredient__name', 'ingredient__measurement_unit',
-            'amount')
-        return pdf_generation(ingredients)
+            recipe__shopping_cart__user=request.user).values_list(
+            'ingredient__name', 'amount', 'ingredient__measurement_unit')
 
-    def delete_obj(self, model, user, pk):
-        obj = model.objects.filter(user=user, recipe__id=pk)
-        if obj.exists():
-            obj.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response({
-            'errors': 'Рецепт уже удален'
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    def add_obj(self, model, user, pk):
-        if model.objects.filter(user=user, recipe__id=pk).exists():
-            return Response({
-                'errors': 'Рецепт уже добавлен в список'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        recipe = get_object_or_404(Recipe, id=pk)
-        model.objects.create(user=user, recipe=recipe)
-        serializer = ShortRecipeSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        ingr_list = {}
+        for name, amount, unit in ingredients:
+            if name not in ingr_list:
+                ingr_list[name] = {'amount': amount, 'unit': unit}
+            else:
+                ingr_list[name]['amount'] += amount
+        height = 700
 
-#    @action(
-#        methods=('GET', ),
-#        detail=False,
-#        permission_classes=(IsAuthenticated,),
-#        url_path='(?P<recipe_id>[^/.]+)/get-link',
-#    )
-#    def shorten(request, url):
-#        #pyshorteners.Shortener().tinyurl.short(url)
-#        return Response({"short-link": 'Привет'}, status=status.HTTP_200_OK)
+        p.drawString(100, 750, 'Список покупок')
+        for i, (name, data) in enumerate(ingr_list.items(), start=1):
+            p.drawString(
+                80, height,
+                f"{i}. {name} – {data['amount']} {data['unit']}")
+            height -= 25
+        p.showPage()
+        p.save()
+        return response
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        permission_classes=(AllowAny,),
+        url_path='get-link',
+    )
+    def get_short_link(self, request, pk=None):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        protocol = request.scheme
+        domain = request.get_host()
+        surl = get_surl(
+            reverse('api:recipes-detail', args=[recipe.id]).replace(
+                'api/', ''
+            ),
+            length=LEN_SHORT_URL,
+        )
+        short_link = f'{protocol}://{domain}{surl}'
+        return Response({'short-link': short_link}, status=status.HTTP_200_OK)

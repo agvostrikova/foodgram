@@ -9,16 +9,18 @@ from api.constants import (
     MAX_LEN_NAME_SLUG,
     MAX_LEN_NAME_INGREDIENT,
     MAX_LEN_NAME_UNIT,
+    MAX_LEN_SHORT_CODE,
+    AMOUNT_LIMIT
 )
 
 User = get_user_model()
 
 
 class Tag(models.Model):
-    """"Модель тега"""
+    """Модель тега."""
+
     name = models.CharField(
         max_length=MAX_LEN_NAME_TAG,
-        unique=True,
         verbose_name='Название'
     )
     slug = models.SlugField(
@@ -37,6 +39,7 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     """Модель ингредиента."""
+
     name = models.CharField(
         max_length=MAX_LEN_NAME_INGREDIENT,
         verbose_name='Ингредиент',
@@ -50,6 +53,10 @@ class Ingredient(models.Model):
         ordering = ('name',)
         verbose_name = 'Ингридиент'
         verbose_name_plural = 'Ингридиенты'
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'measurement_unit'],
+                                    name='unique_ingredient')
+        ]
 
     def __str__(self):
         return self.name
@@ -57,6 +64,7 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     """Модель рецепт."""
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -104,6 +112,9 @@ class Recipe(models.Model):
         verbose_name='Список покупок',
         blank=True,
     )
+    short_code = models.CharField(
+        max_length=MAX_LEN_SHORT_CODE, unique=True, blank=True, null=True
+    )
     pub_date = models.DateTimeField(
         auto_now=True,
         verbose_name='Дата публикации'
@@ -119,7 +130,6 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    """."""
 
     recipe = models.ForeignKey(
         Recipe,
@@ -129,13 +139,14 @@ class RecipeIngredient(models.Model):
     )
     ingredient = models.ForeignKey(
         Ingredient,
+        related_name='ingredient_recipes',
         on_delete=models.CASCADE,
         verbose_name='Ингредиент',
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
         validators=(MinValueValidator(
-            limit_value=0.01,
+            limit_value=AMOUNT_LIMIT,
             message='Количество должно быть больше нуля'),
         )
     )
@@ -156,6 +167,7 @@ class RecipeIngredient(models.Model):
 
 
 class Favorite(models.Model):
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -184,6 +196,7 @@ class Favorite(models.Model):
 
 
 class ShoppingCart(models.Model):
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

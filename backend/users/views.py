@@ -1,14 +1,17 @@
 from django.shortcuts import get_object_or_404
+
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    IsAuthenticated, IsAuthenticatedOrReadOnly
+)
 from rest_framework.response import Response
 
 from api.serializers import (
     FollowSerializer, UsersSerializer, UserAvatarSerializer
 )
+from api.paginations import LimitPagination
 from users.models import Follow, User
 
 
@@ -16,9 +19,11 @@ class UsersViewSet(UserViewSet):
     """Вьюсет для работы с пользователями и подписками.
     Обработка запросов на создание/получение пользователей и
     создание/получение/удаления подписок."""
+
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = LimitPagination
     http_method_names = ['get', 'post', 'delete', 'head', 'put']
 
     @action(methods=['POST', 'DELETE'],
@@ -54,7 +59,9 @@ class UsersViewSet(UserViewSet):
         page = self.paginate_queryset(follows)
         serializer = FollowSerializer(
             page, many=True,
-            context={'request': request})
+            context={'request': request},
+        )
+
         return self.get_paginated_response(serializer.data)
 
     @action(

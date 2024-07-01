@@ -3,8 +3,10 @@ from django_filters.rest_framework import FilterSet, filters
 
 from recipes.models import Ingredient, Recipe, Tag
 
+
 class IngredientFilter(FilterSet):
-    """Фильтр ингредиентов по названию"""
+    """Фильтр ингредиентов по названию."""
+
     name = filters.CharFilter(method='filter_name')
 
     class Meta:
@@ -24,8 +26,8 @@ class IngredientFilter(FilterSet):
 
 
 class RecipeFilter(FilterSet):
-    """Фильтр рецептов по автору/тегу/подписке/наличию в списке покупок"""
-    #tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
+    """Фильтр рецептов по автору/тегу/подписке/наличию в списке покупок."""
+
     tags = filters.ModelMultipleChoiceFilter(
         field_name='tags__slug', to_field_name='slug',
         queryset=Tag.objects.all()
