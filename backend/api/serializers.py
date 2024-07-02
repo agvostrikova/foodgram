@@ -1,11 +1,13 @@
+"""Сериалайзеры."""
+
 import base64
+
 from django.core.files.base import ContentFile
 from django.db import transaction
-
+from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
-from djoser.serializers import UserCreateSerializer, UserSerializer
 
 from users.models import User, Follow
 from recipes.models import (
