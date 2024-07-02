@@ -1,13 +1,16 @@
 name: Foodgram workflow
 
-on: push
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10"]
+        python-version: 3.9
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
@@ -124,7 +127,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "nginx/nginx.conf"
-          target: "foodgram/nginx/nginx.conf"
+          target: "foodgram"
       - name: Executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
         with:
@@ -141,7 +144,7 @@ jobs:
             sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
             sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /backend_static/static/
             sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/static/fonts /backend_static/static/
-  
+
   send_message:
     runs-on: ubuntu-latest
     needs: deploy
