@@ -78,8 +78,8 @@ DATABASES = {
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'foodgram_password'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', 5432)
+    }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
