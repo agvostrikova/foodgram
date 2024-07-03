@@ -8,16 +8,6 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:13.10
-        env:
-          POSTGRES_USER: foodgram_user
-          POSTGRES_PASSWORD: foodgram_password
-          POSTGRES_DB: foodgram
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
@@ -31,17 +21,11 @@ jobs:
         pip install flake8 
         pip install -r ./backend/requirements.txt 
     - name: Test with flake8
-      env:
-        POSTGRES_USER: foodgram_user
-        POSTGRES_PASSWORD: foodgram_password
-        POSTGRES_DB: foodgram
-        DB_HOST: 127.0.0.1
-        DB_PORT: 5432
       run: |
         python -m flake8 backend/
 
   build_and_push_to_docker_hub:
-    name: Push backend Docker image to DockerHub
+    name: Push Docker image to DockerHub
     runs-on: ubuntu-latest
     needs: tests
     steps:
@@ -121,6 +105,24 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "docker-compose.production.yml"
+          target: "foodgram"
+      - name: Copy docs dir via ssh
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          source: "docs"
+          target: "foodgram"
+      - name: Copy nginx.conf via ssh
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          source: "nginx/nginx.conf"
           target: "foodgram"
       - name:  Executing remote ssh commands to deploy
         uses: appleboy/scp-action@master
