@@ -1,3 +1,5 @@
+"""Загрузка информации."""
+
 import csv
 
 from django.core.management import BaseCommand
@@ -17,7 +19,10 @@ TABLE_COLUMN = {
 
 
 class Command(BaseCommand):
+    """Импорт файлов csv."""
+
     def handle(self, *args, **options):
+        """Загрузка рецептов, тегов."""
         for model, file in MODELS_FILES.items():
             all_count = model.objects.count()
             reader = csv.DictReader(

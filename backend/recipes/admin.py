@@ -1,22 +1,29 @@
+"""Настройка админ панеди рецептов."""
 from django.contrib.admin import ModelAdmin, register
 
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag,)
+                            ShoppingCart, Tag)
 
 
 @register(Ingredient)
 class IngredientAdmin(ModelAdmin):
+    """Ингридиенты."""
+
     list_display = ('name', 'measurement_unit')
     search_fields = ('name',)
 
 
 @register(Tag)
 class TagAdmin(ModelAdmin):
+    """Теги."""
+
     list_display = ('name', 'slug')
 
 
 @register(Recipe)
 class RecipeAdmin(ModelAdmin):
+    """Рецепт."""
+
     list_display = ('name', 'author', 'pub_date', 'display_tags', 'favorite')
     list_filter = ('name', 'author', 'tags')
     search_fields = ('name',)
@@ -28,24 +35,32 @@ class RecipeAdmin(ModelAdmin):
               'favorite')
 
     def display_tags(self, obj):
+        """Теги."""
         return ', '.join([tag.name for tag in obj.tags.all()])
     display_tags.short_description = 'Теги'
 
     def favorite(self, obj):
+        """Избранное."""
         return obj.favorite.count()
     favorite.short_description = 'Раз в избранном'
 
 
 @register(RecipeIngredient)
 class RecipeIngredientAdmin(ModelAdmin):
+    """Рецепт+ингредиент."""
+
     list_display = ('recipe', 'ingredient', 'amount')
 
 
 @register(Favorite)
 class FavoriteAdmin(ModelAdmin):
+    """Избранное."""
+
     list_display = ('recipe', 'user')
 
 
 @register(ShoppingCart)
 class ShoppingCartAdmin(ModelAdmin):
+    """Корзина покупок."""
+
     list_display = ('recipe', 'user')

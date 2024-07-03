@@ -1,8 +1,10 @@
-from django.http import HttpResponse
-from django.urls import reverse
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
+"""View сlass рецепты."""
 
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
+from django_filters.rest_framework import DjangoFilterBackend
+from django_short_url.views import get_surl
 from reportlab.pdfbase import pdfmetrics, ttfonts
 from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
@@ -10,19 +12,14 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from django_short_url.views import get_surl
-
+from api.constants import LEN_SHORT_URL
 from api.filters import IngredientFilter, RecipeFilter, TagFilter
 from api.paginations import LimitPagination
 from api.permissions import IsAuthorOrReadOnly
-from api.serializers import (
-    RecipeSerializer, IngredientSerializer,
-    TagSerializer, FavoriteSerializer, ShoppingCartSerializer
-)
-from recipes.models import (
-    Ingredient, Recipe, RecipeIngredient, Tag
-)
-from api.constants import LEN_SHORT_URL
+from api.serializers import (FavoriteSerializer, IngredientSerializer,
+                             RecipeSerializer, ShoppingCartSerializer,
+                             TagSerializer)
+from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -47,9 +44,12 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Вьюсет для работы с рецептами.
-     Обработка запросов создания/получения/редактирования/удаления рецептов
-     Добавление/удаление рецепта в избранное и список покупок."""
+    """
+    Вьюсет для работы с рецептами.
+
+    Обработка запросов создания/получения/редактирования/удаления рецептов
+    Добавление/удаление рецепта в избранное и список покупок.
+    """
 
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
@@ -59,6 +59,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = LimitPagination
 
     def action_post_delete(self, pk, serializer_class):
+        """Удаление рецептов."""
         user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
         object = serializer_class.Meta.model.objects.filter(
@@ -83,16 +84,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(methods=['POST', 'DELETE'], detail=True)
     def favorite(self, request, pk):
+        """Избранное."""
         return self.action_post_delete(pk, FavoriteSerializer)
 
     @action(methods=['POST', 'DELETE'], detail=True)
     def shopping_cart(self, request, pk):
+        """Корзина покупок."""
         return self.action_post_delete(pk, ShoppingCartSerializer)
 
     @action(
         detail=False, methods=['get'], permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
+        """Скачать корзину покупок."""
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = (
             "attachment; filename='shopping_cart.pdf'"
@@ -131,6 +135,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_path='get-link',
     )
     def get_short_link(self, request, pk=None):
+        """Получение коротких ссылок."""
         recipe = get_object_or_404(Recipe, pk=pk)
         protocol = request.scheme
         domain = request.get_host()

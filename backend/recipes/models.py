@@ -1,17 +1,14 @@
-from django.db import models
+"""Models  рецептов."""
+
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
+from django.db import models
 from django.db.models import UniqueConstraint
 
-from api.constants import (
-    MAX_LEN_NAME_RECIPE,
-    MAX_LEN_NAME_TAG,
-    MAX_LEN_NAME_SLUG,
-    MAX_LEN_NAME_INGREDIENT,
-    MAX_LEN_NAME_UNIT,
-    MAX_LEN_SHORT_CODE,
-    AMOUNT_LIMIT
-)
+from api.constants import (AMOUNT_LIMIT, MAX_LEN_NAME_INGREDIENT,
+                           MAX_LEN_NAME_RECIPE, MAX_LEN_NAME_SLUG,
+                           MAX_LEN_NAME_TAG, MAX_LEN_NAME_UNIT,
+                           MAX_LEN_SHORT_CODE)
 
 User = get_user_model()
 
@@ -30,10 +27,13 @@ class Tag(models.Model):
     )
 
     class Meta:
+        """Meta class теги."""
+
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
     def __str__(self):
+        """Строковое представление."""
         return self.name
 
 
@@ -50,6 +50,8 @@ class Ingredient(models.Model):
     )
 
     class Meta:
+        """Meta class ингредиентов."""
+
         ordering = ('name',)
         verbose_name = 'Ингридиент'
         verbose_name_plural = 'Ингридиенты'
@@ -59,6 +61,7 @@ class Ingredient(models.Model):
         ]
 
     def __str__(self):
+        """Строковое представление."""
         return self.name
 
 
@@ -121,15 +124,19 @@ class Recipe(models.Model):
     )
 
     class Meta:
+        """Meta class рецепт."""
+
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
         ordering = ('-pub_date',)
 
     def __str__(self):
+        """Строковое представление."""
         return self.name
 
 
 class RecipeIngredient(models.Model):
+    """Модель рецепт+ингредиент."""
 
     recipe = models.ForeignKey(
         Recipe,
@@ -152,6 +159,8 @@ class RecipeIngredient(models.Model):
     )
 
     class Meta:
+        """Meta class  ингредиентов."""
+
         verbose_name = 'Количество ингредиента'
         verbose_name_plural = 'Количество ингредиентов'
         constraints = [
@@ -162,11 +171,13 @@ class RecipeIngredient(models.Model):
         ]
 
     def __str__(self):
+        """Строковое представление."""
         return (f'{self.recipe}: {self.ingredient.name},'
                 f' {self.amount}, {self.ingredient.measurement_unit}')
 
 
 class Favorite(models.Model):
+    """Модель избранное."""
 
     user = models.ForeignKey(
         User,
@@ -182,6 +193,8 @@ class Favorite(models.Model):
     )
 
     class Meta:
+        """Meta class  избранное."""
+
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
         constraints = (
@@ -192,10 +205,12 @@ class Favorite(models.Model):
         )
 
     def __str__(self):
+        """Строковое представление."""
         return f'{self.recipe} в избранном у {self.user}'
 
 
 class ShoppingCart(models.Model):
+    """Модель корзины покупок."""
 
     user = models.ForeignKey(
         User,
@@ -211,6 +226,8 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
+        """Meta class  корзины покупок."""
+
         verbose_name = 'Рецепт в корзине'
         verbose_name_plural = 'Рецепты в корзине'
         constraints = (
@@ -221,4 +238,5 @@ class ShoppingCart(models.Model):
         )
 
     def __str__(self):
+        """Строковое представление."""
         return f'{self.recipe} в корзине у {self.user}'

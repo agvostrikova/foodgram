@@ -1,7 +1,8 @@
-from django.urls import include, path
+"""Машрутизация адресов."""
+
 from django.conf import settings
 from django.conf.urls.static import static
-
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from recipes.views import IngredientViewSet, RecipeViewSet, TagViewSet

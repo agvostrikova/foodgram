@@ -1,24 +1,21 @@
-from django.shortcuts import get_object_or_404
+"""View-функции пользовательской модели."""
 
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import (
-    IsAuthenticated, IsAuthenticatedOrReadOnly
-)
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
-from api.serializers import (
-    FollowSerializer, UsersSerializer, UserAvatarSerializer
-)
 from api.paginations import LimitPagination
+from api.serializers import (FollowSerializer, UserAvatarSerializer,
+                             UsersSerializer)
 from users.models import Follow, User
 
 
 class UsersViewSet(UserViewSet):
-    """Вьюсет для работы с пользователями и подписками.
-    Обработка запросов на создание/получение пользователей и
-    создание/получение/удаления подписок."""
+    """Вьюсет для работы с пользователями и подписками."""
 
     queryset = User.objects.all()
     serializer_class = UsersSerializer
@@ -29,6 +26,7 @@ class UsersViewSet(UserViewSet):
     @action(methods=['POST', 'DELETE'],
             detail=True, )
     def subscribe(self, request, id):
+        """Подписаться."""
         user = request.user
         author = get_object_or_404(User, id=id)
         subscription = Follow.objects.filter(
@@ -54,6 +52,7 @@ class UsersViewSet(UserViewSet):
 
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
+        """Подписка."""
         user = request.user
         follows = User.objects.filter(following__user=user)
         page = self.paginate_queryset(follows)
@@ -69,6 +68,7 @@ class UsersViewSet(UserViewSet):
         permission_classes=[IsAuthenticated]
     )
     def me(self, request, *args, **kwargs):
+        """Пользователь с именем me."""
         return super().me(request, *args, **kwargs)
 
     @action(
@@ -78,6 +78,7 @@ class UsersViewSet(UserViewSet):
         url_path='me/avatar',
     )
     def avatar(self, request):
+        """Аватар пользователя."""
         user = request.user
         if request.method == 'PUT':
             serializer = UserAvatarSerializer(
