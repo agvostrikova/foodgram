@@ -132,7 +132,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         methods=['GET'],
         detail=False,
         permission_classes=(AllowAny,),
-        url_path='get-link',
+        url_path='(?P<pk>[^/.]+)/get-link',
     )
     def get_short_link(self, request, pk=None):
         """Получение коротких ссылок."""
