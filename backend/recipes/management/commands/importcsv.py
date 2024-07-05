@@ -18,6 +18,7 @@ TABLE_COLUMN = {
     'tags.csv': ['name', 'slug'],
 }
 
+
 class Command(BaseCommand):
     """Импорт файлов csv."""
 

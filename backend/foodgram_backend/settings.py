@@ -153,3 +153,5 @@ DJOSER = {
         'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
     }
 }
+
+DJANGO_SHORT_URL_REDIRECT_URL = ''
