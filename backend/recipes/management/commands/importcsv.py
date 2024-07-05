@@ -7,7 +7,6 @@ from django.core.management import BaseCommand
 from foodgram_backend import settings
 from recipes.models import Ingredient, Tag
 
-
 MODELS_FILES = {
     Ingredient: 'ingredients.csv',
     Tag: 'tags.csv'
