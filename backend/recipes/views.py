@@ -130,7 +130,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         methods=['GET'],
-        detail=False,
+        detail=True,
         permission_classes=(AllowAny,),
         url_path='(?P<pk>[^/.]+)/get-link',
     )
