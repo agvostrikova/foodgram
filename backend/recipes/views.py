@@ -2,15 +2,17 @@
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
+from django_short_url.views import get_surl
 from reportlab.pdfbase import pdfmetrics, ttfonts
 from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from shortener import shortener
 
+from api.constants import LEN_SHORT_URL
 from api.filters import IngredientFilter, RecipeFilter, TagFilter
 from api.paginations import LimitPagination
 from api.permissions import IsAuthorOrReadOnly
@@ -130,26 +132,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         methods=['GET'],
         detail=True,
         permission_classes=(AllowAny,),
-        # url_path='(?P<pk>[^/.]+)/get-link',
         url_path='get-link',
     )
-    def get_short_link(self, request, pk):
-        """Получение коротких ссылок."""
-        data = shortener.create(request.user, request.build_absolute_uri())
+    def get_short_link(self, request, pk=None):
+        """Возвращает короткую ссылку на рецепт."""
+        recipe = get_object_or_404(Recipe, pk=pk)
         protocol = request.scheme
         domain = request.get_host()
-        return Response(
-            {'short-link': f'{protocol}://{domain}/s/{data}'},
-            status=status.HTTP_200_OK
+        surl = get_surl(
+            reverse('api:recipes-detail', args=[recipe.id]).replace(
+                'api/', ''
+            ),
+            length=LEN_SHORT_URL,
         )
-        # recipe = get_object_or_404(Recipe, pk=pk)
-
-        # surl = get_surl(
-        #    reverse('api:recipes-detail', args=[recipe.id]).replace(
-        #        'api/', ''
-        #    ),
-        #    length=LEN_SHORT_URL,
-        # )
-        # short_link = f'{protocol}://{domain}{surl}'
-        # return Response(
-        # {'short-link': short_link}, status=status.HTTP_200_OK)
+        short_link = f'{protocol}://{domain}{surl}'
+        return Response({'short-link': short_link}, status=status.HTTP_200_OK)
