@@ -136,7 +136,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def get_short_link(self, request, pk=None):
         """Получение коротких ссылок."""
-        data = get_surl(request.user, request.build_absolute_uri())
+        data = get_surl(request.build_absolute_uri())
         return Response({'short-link': data}, status=status.HTTP_200_OK)
         # recipe = get_object_or_404(Recipe, pk=pk)
         # protocol = request.scheme
