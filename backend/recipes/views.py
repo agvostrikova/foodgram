@@ -3,7 +3,6 @@
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
 from shortener import shortener
 from reportlab.pdfbase import pdfmetrics, ttfonts
@@ -13,7 +12,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from api.constants import LEN_SHORT_URL
 from api.filters import IngredientFilter, RecipeFilter, TagFilter
 from api.paginations import LimitPagination
 from api.permissions import IsAuthorOrReadOnly
