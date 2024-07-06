@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_filters',
     'djoser',
-    'django_short_url',
+    'shortener',
 
     'api.apps.ApiConfig',
     'recipes.apps.RecipesConfig',
@@ -155,4 +155,4 @@ DJOSER = {
     }
 }
 
-DJANGO_SHORT_URL_REDIRECT_URL = ''
+SHORTENER_ENABLE_TEST_PATH = True

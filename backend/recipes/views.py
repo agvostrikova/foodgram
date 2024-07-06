@@ -1,11 +1,11 @@
 
 """View сlass рецепты."""
 
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
-from django_short_url.views import get_surl
+from shortener import shortener
 from reportlab.pdfbase import pdfmetrics, ttfonts
 from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
@@ -135,18 +135,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=(AllowAny,),
         url_path='get-link',
     )
-    def get_short_link(self, request, pk=None):
+    def get_short_link(self, request, pk):
         """Возвращает короткую ссылку на рецепт."""
-        recipe = get_object_or_404(Recipe, pk=pk)
         protocol = request.scheme
         domain = request.get_host()
-        surl = get_surl(
-            reverse('api:recipes-detail', args=[recipe.id]).replace(
-                'api/', ''
-            ),
-            length=LEN_SHORT_URL,
-        )
-        short_link = f'{protocol}://{domain}/s/{surl}'
-        return JsonResponse(
-            {'short-link': short_link}, status=status.HTTP_200_OK
-        )
+        data = shortener.create(request.user, request.build_absolute_uri())
+        short_link = f'{protocol}://{domain}/s/{data}'
+        return Response({'short-link': short_link}, status=status.HTTP_200_OK)
