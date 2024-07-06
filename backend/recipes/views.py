@@ -1,3 +1,4 @@
+
 """View сlass рецепты."""
 
 from django.http import HttpResponse
@@ -145,5 +146,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
             ),
             length=LEN_SHORT_URL,
         )
-        short_link = f'{protocol}://{domain}{surl}'
+        short_link = f'{protocol}://{domain}/s/{surl}'
         return Response({'short-link': short_link}, status=status.HTTP_200_OK)

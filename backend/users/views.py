@@ -21,7 +21,6 @@ class UsersViewSet(UserViewSet):
     serializer_class = UsersSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = LimitPagination
-    http_method_names = ['get', 'post', 'delete', 'head', 'put']
 
     @action(methods=['POST', 'DELETE'],
             detail=True, )
@@ -50,7 +49,11 @@ class UsersViewSet(UserViewSet):
             return Response({'error': 'Вы не подписаны на этого пользователя'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, permission_classes=[IsAuthenticated])
+    @action(
+        detail=False,
+        methods=['GET'],
+        permission_classes=[IsAuthenticated]
+    )
     def subscriptions(self, request):
         """Подписка."""
         user = request.user
