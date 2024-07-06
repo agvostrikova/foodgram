@@ -1,7 +1,7 @@
 
 """View сlass рецепты."""
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -147,4 +147,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             length=LEN_SHORT_URL,
         )
         short_link = f'{protocol}://{domain}/s/{surl}'
-        return Response({'short-link': short_link}, status=status.HTTP_200_OK)
+        return JsonResponse(
+            {'short-link': short_link}, status=status.HTTP_200_OK
+        )
