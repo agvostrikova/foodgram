@@ -12,6 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from api.constants import LEN_SHORT_URL
 from api.filters import IngredientFilter, RecipeFilter, TagFilter
 from api.paginations import LimitPagination
 from api.permissions import IsAuthorOrReadOnly
@@ -137,6 +138,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Возвращает короткую ссылку на рецепт."""
         protocol = request.scheme
         domain = request.get_host()
-        surl = get_surl(f'{protocol}://{domain}/recipes/{pk}')
+        surl = get_surl(f'{protocol}://{domain}/recipes/{pk}', length=LEN_SHORT_URL)
         short_link = f'{protocol}://{domain}{surl}'
         return Response({'short-link': short_link}, status=status.HTTP_200_OK)
