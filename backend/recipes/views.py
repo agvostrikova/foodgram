@@ -138,6 +138,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Возвращает короткую ссылку на рецепт."""
         protocol = request.scheme
         domain = request.get_host()
-        surl = get_surl(f'{protocol}://{domain}/recipes/{pk}', length=LEN_SHORT_URL)
+        surl = get_surl(
+            f'{protocol}://{domain}/recipes/{pk}', length=LEN_SHORT_URL
+        )
         short_link = f'{protocol}://{domain}{surl}'
         return Response({'short-link': short_link}, status=status.HTTP_200_OK)
