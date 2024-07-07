@@ -135,8 +135,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def get_short_link(self, request, pk):
         """Возвращает короткую ссылку на рецепт."""
-        protocol = request.scheme
-        domain = request.get_host()
         data = shortener.create(request.user, request.build_absolute_uri())
-        short_link = f'{protocol}://{domain}/s/{data}'
+        short_link = f'https://foodgram.viewdns.net/s/{data}'
         return Response({'short-link': short_link}, status=status.HTTP_200_OK)
