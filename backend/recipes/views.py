@@ -3,7 +3,6 @@
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
 from django_short_url.views import get_surl
 from reportlab.pdfbase import pdfmetrics, ttfonts
@@ -136,14 +135,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def get_short_link(self, request, pk=None):
         """Возвращает короткую ссылку на рецепт."""
-        recipe = get_object_or_404(Recipe, pk=pk)
         protocol = request.scheme
         domain = request.get_host()
-        surl = get_surl(
-            reverse('api:recipes-detail', args=[recipe.id]).replace(
-                'api/', ''
-            ),
-            length=5,
-        )
+        surl = get_surl(request.build_absolute_uri())
         short_link = f'{protocol}://{domain}{surl}'
         return Response({'short-link': short_link}, status=status.HTTP_200_OK)
