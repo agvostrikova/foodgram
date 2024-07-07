@@ -1,6 +1,6 @@
 """Фильтры API."""
 
-from django.db.models import (BooleanField, ExpressionWrapper, Exists, Q,
+from django.db.models import (BooleanField, Exists, ExpressionWrapper, Q,
                               OuterRef)
 from django_filters.rest_framework import FilterSet, filters
 
