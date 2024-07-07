@@ -12,4 +12,4 @@ python-dotenv==1.0.0
 django-filter==21.1
 reportlab==4.2.0
 djangorestframework-simplejwt==4.7.2
-django-link-shortener==0.5
+django-short-url==1.1.8
