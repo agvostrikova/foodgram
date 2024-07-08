@@ -9,13 +9,13 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         """Проверка права для пользователя."""
         return (
-            request.user.is_authenticated
-            or request.method in permissions.SAFE_METHODS
+            request.method in permissions.SAFE_METHODS
+            or request.user.is_authenticated
         )
 
     def has_object_permission(self, request, view, obj):
         """Проверка права для объекта."""
         return (
-            obj.author == request.user
-            or request.method in permissions.SAFE_METHODS
+            request.method in permissions.SAFE_METHODS
+            or obj.author == request.user
         )

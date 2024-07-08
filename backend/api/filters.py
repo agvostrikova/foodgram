@@ -59,28 +59,16 @@ class RecipeFilter(FilterSet):
         """Фильтр избранного."""
         if not self.request.user.is_authenticated:
             return queryset.none()
-        if value:
-            return queryset.filter(
-                Exists(
-                    Favorite.objects.filter(
-                        user=self.request.user, recipe=OuterRef('pk')
-                    )
-                )
-            )
+        if value and self.request.user.is_authenticated:
+            return queryset.filter(favorite__user=self.request.user)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         """Фильтр списка покупок."""
         if not self.request.user.is_authenticated:
             return queryset.none()
-        if value:
-            return queryset.filter(
-                Exists(
-                    ShoppingCart.objects.filter(
-                        user=self.request.user, recipe=OuterRef('pk')
-                    )
-                )
-            )
+        if value and self.request.user.is_authenticated:
+            return queryset.filter(shopping_cart__user=self.request.user)
         return queryset
 
 

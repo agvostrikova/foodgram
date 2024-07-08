@@ -4,11 +4,11 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.paginations import LimitPagination
+from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (FollowSerializer, UserAvatarSerializer,
                              UsersSerializer)
 from users.models import Follow, User
@@ -19,13 +19,16 @@ class UsersViewSet(UserViewSet):
 
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = LimitPagination
 
     @action(methods=['POST', 'DELETE'],
             detail=True, )
     def subscribe(self, request, id):
         """Подписаться."""
+        if id.isdigit() is False:
+            return Response({'error': 'Неккоректный ввод id пользователя.'},
+                            status=status.HTTP_400_BAD_REQUEST)
         user = request.user
         author = get_object_or_404(User, id=id)
         subscription = Follow.objects.filter(
@@ -46,8 +49,10 @@ class UsersViewSet(UserViewSet):
             if subscription.exists():
                 subscription.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response({'error': 'Вы не подписаны на этого пользователя'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Вы не подписаны на этого пользователя'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     @action(
         detail=False,
@@ -63,7 +68,6 @@ class UsersViewSet(UserViewSet):
             page, many=True,
             context={'request': request},
         )
-
         return self.get_paginated_response(serializer.data)
 
     @action(

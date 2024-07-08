@@ -24,12 +24,16 @@ class TagAdmin(ModelAdmin):
 class RecipeAdmin(ModelAdmin):
     """Рецепт."""
 
-    list_display = ('name', 'author', 'pub_date', 'display_tags', 'favorite')
+    list_display = (
+        'name', 'author', 'pub_date', 'display_tags', 'display_ingredients',
+        'favorite'
+    )
     list_filter = ('name', 'author', 'tags')
     search_fields = ('name',)
     readonly_fields = ('favorite',)
     fields = ('image',
               ('name', 'author'),
+              'ingredients'
               'text',
               ('tags', 'cooking_time'),
               'favorite')
@@ -39,10 +43,17 @@ class RecipeAdmin(ModelAdmin):
         return ', '.join([tag.name for tag in obj.tags.all()])
     display_tags.short_description = 'Теги'
 
+    def display_ingredients(self, obj):
+        """Ингредиенты."""
+        return ', '.join(
+            [ingredient.name for ingredient in obj.ingredients.all()]
+        )
+    display_ingredients.short_description = 'Ингредиенты'
+
     def favorite(self, obj):
         """Избранное."""
         return obj.favorite.count()
-    favorite.short_description = 'Раз в избранном'
+    favorite.short_description = 'Количество раз в избранном'
 
 
 @register(RecipeIngredient)

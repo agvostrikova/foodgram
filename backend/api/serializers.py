@@ -72,7 +72,7 @@ class UserAvatarSerializer(serializers.Serializer):
     avatar = Base64ImageField(allow_null=True, required=True)
 
     def update(self, instance, validated_data):
-        """Обнваление аватара."""
+        """Обновление аватара."""
         instance.avatar = validated_data.get('avatar', instance.avatar)
         instance.save()
         return instance
@@ -129,7 +129,7 @@ class FollowSerializer(UsersSerializer):
         """Возвращает рецепты пользователя."""
         request = self.context.get('request')
         context = {'request': request}
-        recipe_limit = request.query_params.get('recipe_limit')
+        recipe_limit = request.query_params.get('recipes_limit')
         queryset = object.recipes.all()
         if recipe_limit:
             queryset = queryset[:int(recipe_limit)]

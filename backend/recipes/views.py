@@ -84,11 +84,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(methods=['POST', 'DELETE'], detail=True)
     def favorite(self, request, pk):
         """Избранное."""
+        if pk.isdigit() is False:
+            return Response({'error': 'Неккоректный ввод id пользователя.'},
+                            status=status.HTTP_400_BAD_REQUEST)
         return self.action_post_delete(pk, FavoriteSerializer)
 
     @action(methods=['POST', 'DELETE'], detail=True)
     def shopping_cart(self, request, pk):
         """Корзина покупок."""
+        if pk.isdigit() is False:
+            return Response({'error': 'Неккоректный ввод id пользователя.'},
+                            status=status.HTTP_400_BAD_REQUEST)
         return self.action_post_delete(pk, ShoppingCartSerializer)
 
     @action(
