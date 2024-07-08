@@ -33,7 +33,7 @@ class RecipeAdmin(ModelAdmin):
     readonly_fields = ('favorite',)
     fields = ('image',
               ('name', 'author'),
-              'ingredients'
+              'ingredients',
               'text',
               ('tags', 'cooking_time'),
               'favorite')
