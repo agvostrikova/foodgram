@@ -24,6 +24,8 @@ class RecipeIngredientInline(TabularInline):
     """Рецепт+ингредиент."""
 
     model = RecipeIngredient
+    extra = 0
+    min_num = 1
 
 
 @register(Recipe)

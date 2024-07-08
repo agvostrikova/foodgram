@@ -148,7 +148,7 @@ class RecipeIngredient(models.Model):
         Ingredient,
         related_name='ingredient_recipes',
         on_delete=models.CASCADE,
-        verbose_name='Ингредиент',
+        verbose_name='Ингредиент'
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
@@ -161,8 +161,8 @@ class RecipeIngredient(models.Model):
     class Meta:
         """Meta class  ингредиентов."""
 
-        verbose_name = 'Количество ингредиента'
-        verbose_name_plural = 'Количество ингредиентов'
+        verbose_name = 'Список ингредиентов'
+        verbose_name_plural = 'Списки ингредиентов'
         constraints = [
             UniqueConstraint(
                 fields=('recipe', 'ingredient'),
