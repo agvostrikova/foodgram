@@ -1,5 +1,5 @@
 """Настройка админ панеди рецептов."""
-from django.contrib.admin import ModelAdmin, register
+from django.contrib.admin import ModelAdmin, register, TabularInline
 
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
@@ -20,20 +20,26 @@ class TagAdmin(ModelAdmin):
     list_display = ('name', 'slug')
 
 
+class RecipeIngredientInline(TabularInline):
+    """Рецепт+ингредиент."""
+
+    model = RecipeIngredient
+
+
 @register(Recipe)
 class RecipeAdmin(ModelAdmin):
     """Рецепт."""
 
     list_display = (
-        'name', 'author', 'pub_date', 'display_tags', 'display_ingredients',
+        'name', 'author', 'pub_date', 'display_tags',
         'favorite'
     )
-    list_filter = ('name', 'author', 'tags', 'ingredients')
+    inlines = [RecipeIngredientInline]
+    list_filter = ('name', 'author', 'tags')
     search_fields = ('name',)
     readonly_fields = ('favorite',)
     fields = ('image',
               ('name', 'author'),
-              'ingredients',
               'text',
               ('tags', 'cooking_time'),
               'favorite')
@@ -42,13 +48,6 @@ class RecipeAdmin(ModelAdmin):
         """Теги."""
         return ', '.join([tag.name for tag in obj.tags.all()])
     display_tags.short_description = 'Теги'
-
-    def display_ingredients(self, obj):
-        """Ингредиенты."""
-        return ', '.join(
-            [ingredient.name for ingredient in obj.ingredients.all()]
-        )
-    display_ingredients.short_description = 'Ингредиенты'
 
     def favorite(self, obj):
         """Избранное."""
