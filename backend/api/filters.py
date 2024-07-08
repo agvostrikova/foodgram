@@ -1,10 +1,9 @@
 """Фильтры API."""
 
-from django.db.models import (BooleanField, Exists, ExpressionWrapper, Q,
-                              OuterRef)
+from django.db.models import BooleanField, ExpressionWrapper, Q
 from django_filters.rest_framework import FilterSet, filters
 
-from recipes.models import Ingredient, Recipe, Tag, Favorite, ShoppingCart
+from recipes.models import Ingredient, Recipe, Tag
 
 
 class IngredientFilter(FilterSet):
