@@ -28,7 +28,7 @@ class RecipeAdmin(ModelAdmin):
         'name', 'author', 'pub_date', 'display_tags', 'display_ingredients',
         'favorite'
     )
-    list_filter = ('name', 'author', 'tags')
+    list_filter = ('name', 'author', 'tags', 'ingredients')
     search_fields = ('name',)
     readonly_fields = ('favorite',)
     fields = ('image',
