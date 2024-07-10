@@ -8,7 +8,7 @@ from recipes.models import Ingredient, Recipe, Tag
 class IngredientFilter(FilterSet):
     """Фильтр ингредиентов по названию."""
 
-    name = filters.CharFilter(lookup_expr='istartswith')
+    name = filters.CharFilter(lookup_expr='icontains')
 
     class Meta:
         """class Meta IngredientFilter."""
