@@ -1,8 +1,9 @@
 """Настройка админ панеди рецептов."""
 from django.contrib.admin import ModelAdmin, register, TabularInline
 
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
+from recipes.models import (
+    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
+)
 
 
 @register(Ingredient)
@@ -40,11 +41,11 @@ class RecipeAdmin(ModelAdmin):
     list_filter = ('name', 'author', 'tags')
     search_fields = ('name',)
     readonly_fields = ('favorite',)
-    fields = ('image',
-              ('name', 'author'),
-              'text',
-              ('tags', 'cooking_time'),
-              'favorite')
+    fields = (
+        'image', ('name', 'author'),
+        'text', ('tags', 'cooking_time'),
+        'favorite'
+    )
 
     def display_tags(self, obj):
         """Теги."""

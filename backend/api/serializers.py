@@ -9,8 +9,9 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
 
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
+from recipes.models import (
+    Favorite, Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
+)
 from users.models import Follow, User
 
 
@@ -30,25 +31,17 @@ class UsersCreateSerializer(UserCreateSerializer):
             'password',
         )
 
-        extra_kwargs = {"password": {"write_only": True}}
-
-    def validate_username(self, value):
-        """Проверка пользователя с именем me."""
-        if value == "me":
-            raise ValidationError(
-                'Невозможно создать пользователя с таким именем!'
-            )
-        return value
+        extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data: dict) -> User:
         """Создаёт нового пользователя с запрошенными полями."""
         user = User(
-            email=validated_data["email"],
-            username=validated_data["username"],
-            first_name=validated_data["first_name"],
-            last_name=validated_data["last_name"],
+            email=validated_data['email'],
+            username=validated_data['username'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
         )
-        user.set_password(validated_data["password"])
+        user.set_password(validated_data['password'])
         user.save()
         return user
 
@@ -128,12 +121,13 @@ class FollowSerializer(UsersSerializer):
     def get_recipes(self, object):
         """Возвращает рецепты пользователя."""
         request = self.context.get('request')
-        context = {'request': request}
         recipe_limit = request.query_params.get('recipes_limit')
         queryset = object.recipes.all()
         if recipe_limit:
             queryset = queryset[:int(recipe_limit)]
-        return RecipeInfoSerializer(queryset, context=context, many=True).data
+        return RecipeInfoSerializer(
+            queryset, context={'request': request}, many=True
+        ).data
 
     def get_recipes_count(self, object):
         """Возвращает количество рецептов пользователя."""
@@ -148,7 +142,6 @@ class TagSerializer(serializers.ModelSerializer):
 
         model = Tag
         fields = '__all__'
-        read_only_fields = ('__all__',)
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -165,11 +158,14 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для подробного описания ингредиентов в рецепте."""
 
     name = serializers.CharField(
-        source='ingredient.name', read_only=True)
+        source='ingredient.name', read_only=True
+    )
     id = serializers.PrimaryKeyRelatedField(
-        source='ingredient.id', read_only=True)
+        source='ingredient.id', read_only=True
+    )
     measurement_unit = serializers.CharField(
-        source='ingredient.measurement_unit', read_only=True)
+        source='ingredient.measurement_unit', read_only=True
+    )
 
     class Meta:
         """Meta class ингредиентов."""
@@ -183,7 +179,8 @@ class AddIngredientSerializer(serializers.ModelSerializer):
 
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
-        source='ingredient')
+        source='ingredient'
+    )
 
     class Meta:
         """Meta class ингредиентов."""
@@ -207,33 +204,25 @@ class RecipeSerializer(serializers.ModelSerializer):
         """Meta class рецептов."""
 
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients',
-                  'name', 'image', 'text', 'cooking_time')
+        fields = (
+            'id', 'tags', 'author', 'ingredients',
+            'name', 'image', 'text', 'cooking_time'
+        )
 
     def validate(self, data):
         """Валидация тегов и ингредиентов."""
-        required_fields = (
-            'ingredients',
-            'tags',
-            'name',
-            'text',
-            'cooking_time',
-        )
+        required_fields = ('ingredients', 'tags')
         for field in required_fields:
             if field not in data:
                 raise ValidationError({field: 'Обязательное поле'})
-
-        list_ingr = [item['ingredient'] for item in data['ingredients']]
-        all_ingredients, distinct_ingredients = (
-            len(list_ingr), len(set(list_ingr)))
-
-        if all_ingredients != distinct_ingredients:
-            raise ValidationError(
-                {'error': 'Ингредиенты должны быть уникальными'}
-            )
         if not data['ingredients']:
             raise ValidationError(
                 {'error': 'Должен быть, хотя бы один игридиент'}
+            )
+        list_ingr = [item['ingredient'] for item in data['ingredients']]
+        if len(list_ingr) != len(set(list_ingr)):
+            raise ValidationError(
+                {'error': 'Ингредиенты должны быть уникальными'}
             )
         if len(data['tags']) != len(set(data['tags'])):
             raise ValidationError(
@@ -314,8 +303,9 @@ class GetRecipeSerializer(serializers.ModelSerializer):
 
     tags = TagSerializer(many=True)
     author = UsersSerializer(read_only=True)
-    ingredients = RecipeIngredientSerializer(read_only=True, many=True,
-                                             source='recipe_ingredient')
+    ingredients = RecipeIngredientSerializer(
+        read_only=True, many=True, source='recipe_ingredient'
+    )
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
@@ -323,9 +313,11 @@ class GetRecipeSerializer(serializers.ModelSerializer):
         """Meta class полная информация рецепта."""
 
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients',
-                  'is_favorited', 'is_in_shopping_cart',
-                  'name', 'image', 'text', 'cooking_time')
+        fields = (
+            'id', 'tags', 'author', 'ingredients',
+            'is_favorited', 'is_in_shopping_cart',
+            'name', 'image', 'text', 'cooking_time'
+        )
 
     def get_is_favorited(self, object):
         """Получить избранный рецепт."""

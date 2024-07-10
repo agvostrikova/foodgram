@@ -78,12 +78,14 @@ class Recipe(models.Model):
         Ingredient,
         verbose_name='Ингредиенты',
         through='RecipeIngredient',
-        related_name='recipe'
+        related_name='recipe',
+        blank=False,
     )
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Теги',
-        related_name='recipes'
+        related_name='recipes',
+        blank=False,
     )
     image = models.ImageField(
         upload_to='recipes/',
@@ -91,13 +93,16 @@ class Recipe(models.Model):
     )
     name = models.CharField(
         max_length=MAX_LEN_NAME_RECIPE,
-        verbose_name='Название'
+        verbose_name='Название',
+        blank=False
     )
     text = models.TextField(
-        verbose_name='Описание'
+        verbose_name='Описание',
+        blank=False
     )
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления',
+        blank=False,
         validators=(MinValueValidator(
             limit_value=1,
             message='Время приготовления не может быть менее одной минуты.'),
@@ -172,8 +177,10 @@ class RecipeIngredient(models.Model):
 
     def __str__(self):
         """Строковое представление."""
-        return (f'{self.recipe}: {self.ingredient.name},'
-                f' {self.amount}, {self.ingredient.measurement_unit}')
+        return (
+            f'{self.recipe}: {self.ingredient.name},'
+            f' {self.amount}, {self.ingredient.measurement_unit}'
+        )
 
 
 class Favorite(models.Model):

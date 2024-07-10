@@ -9,8 +9,9 @@ from rest_framework.response import Response
 
 from api.paginations import LimitPagination
 from api.permissions import IsAuthorOrReadOnly
-from api.serializers import (FollowSerializer, UserAvatarSerializer,
-                             UsersSerializer)
+from api.serializers import (
+    FollowSerializer, UserAvatarSerializer, UsersSerializer
+)
 from users.models import Follow, User
 
 
@@ -22,25 +23,34 @@ class UsersViewSet(UserViewSet):
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = LimitPagination
 
-    @action(methods=['POST', 'DELETE'],
-            detail=True, )
+    @action(
+        methods=['POST', 'DELETE'],
+        detail=True,
+    )
     def subscribe(self, request, id):
         """Подписаться."""
         if id.isdigit() is False:
-            return Response({'error': 'Неккоректный ввод id пользователя.'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Неккоректный ввод id пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         user = request.user
         author = get_object_or_404(User, id=id)
         subscription = Follow.objects.filter(
-            user=user, author=author)
+            user=user, author=author
+        )
 
         if request.method == 'POST':
             if subscription.exists():
-                return Response({'error': 'Вы уже подписаны'},
-                                status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'error': 'Вы уже подписаны'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             if user == author:
-                return Response({'error': 'Невозможно подписаться на себя'},
-                                status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'error': 'Невозможно подписаться на себя'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             serializer = FollowSerializer(author, context={'request': request})
             Follow.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

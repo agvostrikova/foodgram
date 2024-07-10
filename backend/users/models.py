@@ -5,8 +5,10 @@ from django.core.validators import RegexValidator
 from django.db import models
 from rest_framework.exceptions import ValidationError
 
-from api.constants import (MAX_LEN_EMAIL, MAX_LEN_FERST_NAME,
-                           MAX_LEN_LAST_NAME, MAX_LEN_USERNAME)
+from api.constants import (
+    MAX_LEN_EMAIL, MAX_LEN_FERST_NAME,
+    MAX_LEN_LAST_NAME, MAX_LEN_USERNAME
+)
 
 
 class User(AbstractUser):

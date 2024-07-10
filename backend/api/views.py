@@ -15,9 +15,10 @@ from rest_framework.response import Response
 from api.filters import IngredientFilter, RecipeFilter, TagFilter
 from api.paginations import LimitPagination
 from api.permissions import IsAuthorOrReadOnly
-from api.serializers import (FavoriteSerializer, IngredientSerializer,
-                             RecipeSerializer, ShoppingCartSerializer,
-                             TagSerializer)
+from api.serializers import (
+    FavoriteSerializer, IngredientSerializer, RecipeSerializer,
+    ShoppingCartSerializer, TagSerializer
+)
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 
 
@@ -58,7 +59,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = LimitPagination
 
     def action_post_delete(self, pk, serializer_class):
-        """Удаление рецептов."""
+        """Удаление/редактирование рецептов."""
         user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
         object = serializer_class.Meta.model.objects.filter(
@@ -78,8 +79,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             if object.exists():
                 object.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response({'error': 'Этого рецепта нет в списке'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Этого рецепта нет в списке'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     @action(methods=['POST', 'DELETE'], detail=True)
     def favorite(self, request, pk):
@@ -113,7 +116,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         ingredients = RecipeIngredient.objects.filter(
             recipe__shopping_cart__user=request.user).values_list(
-            'ingredient__name', 'amount', 'ingredient__measurement_unit')
+            'ingredient__name', 'amount', 'ingredient__measurement_unit'
+        )
 
         ingr_list = {}
         for name, amount, unit in ingredients:
