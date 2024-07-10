@@ -5,8 +5,9 @@ from django.conf.urls.static import static
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views import IngredientViewSet, RecipeViewSet, TagViewSet
 from users.views import UsersViewSet
+
+from .views import IngredientViewSet, RecipeViewSet, TagViewSet
 
 router = DefaultRouter()
 router.register(r'users', UsersViewSet)
