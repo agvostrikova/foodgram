@@ -1,6 +1,5 @@
 """Фильтры API."""
 
-from django.db.models import BooleanField, ExpressionWrapper, Q
 from django_filters.rest_framework import FilterSet, filters
 
 from recipes.models import Ingredient, Recipe, Tag
@@ -9,22 +8,13 @@ from recipes.models import Ingredient, Recipe, Tag
 class IngredientFilter(FilterSet):
     """Фильтр ингредиентов по названию."""
 
-    name = filters.CharFilter(method='filter_name')
+    name = filters.CharFilter(lookup_expr='istartswith')
 
     class Meta:
-        """class Meta фильтра ингредиентов по названию."""
+        """class Meta IngredientFilter."""
 
         model = Ingredient
-        fields = ('name',)
-
-    def filter_name(self, queryset, name, value):
-        """Метод возвращает кверисет с заданным именем ингредиента."""
-        return queryset.filter(Q(name__icontains=value)).annotate(
-            startswith=ExpressionWrapper(
-                Q(name__istartswith=value),
-                output_field=BooleanField()
-            )
-        ).order_by('-startswith')
+        fields = ('name', )
 
 
 class RecipeFilter(FilterSet):
