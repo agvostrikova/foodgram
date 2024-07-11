@@ -1,5 +1,6 @@
 """Фильтры API."""
 
+from django.db.models import Q
 from django_filters.rest_framework import FilterSet, filters
 
 from recipes.models import Ingredient, Recipe, Tag
@@ -20,11 +21,7 @@ class IngredientFilter(FilterSet):
 class RecipeFilter(FilterSet):
     """Фильтр рецептов по автору/тегу/подписке/наличию в списке покупок."""
 
-    tags = filters.ModelMultipleChoiceFilter(
-        queryset=Tag.objects.all(),
-        field_name='tags__slug',
-        to_field_name='slug',
-    )
+    tags = filters.CharFilter(method='filter_tags')
     author = filters.NumberFilter(field_name='author__id')
     is_favorited = filters.BooleanFilter(method='filter_is_favorited')
     is_in_shopping_cart = filters.BooleanFilter(
@@ -36,16 +33,30 @@ class RecipeFilter(FilterSet):
         model = Recipe
         fields = ('author', 'tags', 'is_favorited', 'is_in_shopping_cart')
 
+    def filter_tags(self, queryset, name, value):
+        """Фильтрация по нескольким тегам, переданным через параметр 'tags'."""
+        tags = self.request.query_params.getlist('tags')
+        if tags:
+            query = Q()
+            for tag in tags:
+                query |= Q(tags__slug=tag)
+            queryset = queryset.filter(query).distinct()
+        return queryset
+
     def filter_is_favorited(self, queryset, name, value):
         """Фильтр избранного."""
-        if value and self.request.user.is_authenticated:
-            return queryset.filter(favorite__user=self.request.user)
+        if value:
+            if self.request.user.is_authenticated:
+                return queryset.filter(favorite__user=self.request.user)
+            return queryset.none()
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         """Фильтр списка покупок."""
-        if value and self.request.user.is_authenticated:
-            return queryset.filter(shopping_cart__user=self.request.user)
+        if value:
+            if self.request.user.is_authenticated:
+                return queryset.filter(shopping_cart__user=self.request.user)
+            return queryset.none()
         return queryset
 
 
